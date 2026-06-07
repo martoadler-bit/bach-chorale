@@ -16,15 +16,23 @@ jobs:
       - name: Select Xcode 26
         run: sudo xcode-select -s /Applications/Xcode_26.0.app/Contents/Developer
 
-      - name: Install certificate and API key
+      - name: Install App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        run: |
+          KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$KEY_DIR"
+          echo -n "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode \
+            > "$KEY_DIR/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          echo "KEY_PATH=$KEY_DIR/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8" >> $GITHUB_ENV
+
+      - name: Install distribution certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         run: |
-          # Install certificate into temporary keychain
           CERT_PATH=$RUNNER_TEMP/distribution.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
@@ -36,25 +44,6 @@ jobs:
           security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
-
-          # Install API key
-          KEY_DIR="$HOME/.appstoreconnect/private_keys"
-          mkdir -p "$KEY_DIR"
-          echo -n "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode \
-            > "$KEY_DIR/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-          echo "KEY_PATH=$KEY_DIR/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8" >> $GITHUB_ENV
-
-      - name: Install provisioning profile
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-        run: |
-          # Let xcodebuild fetch the provisioning profile automatically
-          xcodebuild -downloadAllProvisioningProfiles \
-            -authenticationKeyPath "$KEY_PATH" \
-            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
-            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
-            DEVELOPMENT_TEAM=228T6U2RV4 || true
 
       - name: Build Archive
         env:
@@ -71,7 +60,6 @@ jobs:
             -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
             -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
             CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=228T6U2RV4
 
       - name: Export IPA
