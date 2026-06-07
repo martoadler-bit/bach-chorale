@@ -1,0 +1,85 @@
+/* App */
+"app.title" = "Neo-Riemanniana";
+"app.subtitle" = "Cube Dance";
+
+/* Tabs */
+"tab.explore" = "Explorar";
+"tab.theory" = "Teoría";
+
+/* Legend */
+"legend.major" = "Mayor";
+"legend.minor" = "Menor";
+"legend.aug" = "Aum.";
+
+/* Panel */
+"panel.hint" = "Toca un acorde en el Cube Dance";
+
+/* Settings */
+"settings.title" = "Ajustes";
+"settings.sound" = "Sonido";
+"settings.done" = "Listo";
+
+/* Sound presets */
+"sound.rhodes" = "Rhodes";
+"sound.strings" = "Cuerdas";
+"sound.choir" = "Coro";
+"sound.organ" = "Órgano";
+"sound.synthpad" = "Pad Sintetizador";
+
+/* Theory — Intro */
+"theory.intro.title" = "Teoría Neo-Riemanniana";
+"theory.intro.body" = "La teoría neo-riemanniana (TNR) ofrece herramientas para analizar progresiones armónicas que resisten la explicación mediante funciones tonales tradicionales. Desarrollada a partir de los escritos armónicos de Hugo Riemann a fines del siglo XIX y expandida por David Lewin, Richard Cohn y Steven Rings entre los años 1990 y 2000, la TNR describe cómo las tríadas mayores y menores se relacionan a través de transformaciones de mínima conducción de voces en un espacio cromático sin tónica fija.\n\nEste enfoque es especialmente útil para analizar pasajes de Schubert, Brahms, Liszt, Wagner y Bruckner donde los acordes se mueven por semitonos de manera suave pero no pueden asignarse a ninguna tonalidad mediante números romanos.";
+
+/* Theory — Operations */
+"theory.ops.title" = "Las Seis Operaciones";
+"theory.ops.subtitle" = "Todas las operaciones NRT son involuciones: aplicar la misma operación dos veces devuelve al acorde inicial. Siempre cambian el modo de la tríada.";
+
+/* Operation short descriptions */
+"op.l.short" = "Conserva la 3ra menor. Desplaza la fundamental un semitono.";
+"op.p.short" = "Conserva la 5ta. Cambia el modo (misma fundamental).";
+"op.r.short" = "Conserva la 3ra mayor. Desplaza un tono entero.";
+"op.n.short" = "Invierte la tríada. Dos voces se mueven un semitono.";
+"op.h.short" = "Polo hexatónico. Sin notas en común. Distancia máxima.";
+"op.s.short" = "Conserva la 3ra. Dos voces se desplazan un semitono.";
+
+/* Operation long descriptions */
+"op.l.long" = "L (Leading-tone exchange / Leittonwechsel) conserva la 3ra menor de la tríada y convierte la 3ra mayor en una 4ta justa desplazando una sola nota un semitono. Aplicada a una tríada mayor, la fundamental desciende un semitono. Aplicada a una tríada menor, la 5ta asciende un semitono. El nombre hace referencia al comportamiento de la sensible en la conducción de voces tonal tradicional. L y P juntas generan los ciclos hexatónicos.";
+
+"op.p.long" = "P (Parallel) conserva la 5ta justa y cambia el modo, desplazando la 3ra un semitono. Conecta una tríada mayor con su paralela menor (misma fundamental), y viceversa. Es la más simple de las operaciones NRT: una sola voz se mueve, solo un semitono. En el Cube Dance, P conecta nodos adyacentes dentro de un ciclo hexatónico.";
+
+"op.r.long" = "R (Relative) conserva la 3ra mayor y convierte la 3ra menor en una 4ta justa. Conecta una tríada mayor con su relativo menor (y viceversa), desplazando una voz un tono entero. R es una de las dos operaciones (junto con N) que conservan una región de Weitzmann. Alternando R y N se generan los seis acordes de una región.";
+
+"op.n.long" = "N (Nebenverwandt, 'relacionado cercano') invierte una tríada mayor alrededor de su fundamental, y una tríada menor alrededor de su 5ta. Dos voces se mueven un semitono cada una. Al igual que R, conserva la región de Weitzmann. La operación revela una relación simétrica entre tríadas: Do mayor y Fa menor son inversiones una de la otra bajo N, diferenciándose solo en cuál nota actúa como eje.";
+
+"op.h.long" = "H (Polo hexatónico) es una operación compuesta equivalente a PLP o LPL. Transforma una tríada en el acorde más distante dentro de su ciclo hexatónico: el único que no tiene ninguna nota en común con el punto de partida. Las tres voces se desplazan un semitono. En el diagrama circular del Cube Dance, los polos hexatónicos aparecen diametralmente opuestos. Hay tres pares de polos en cada ciclo: {Do, Labm}, {Mi, Dom}, {Lab, Mim}.";
+
+"op.s.long" = "S (Slide) conserva la 3ra y desplaza las otras dos voces un semitono cada una, equivalente a la cadena compuesta RNR (o NRN). Conecta acordes de modo opuesto que comparten la 3ra pero difieren en todas las demás notas. David Lewin lo llamó 'slide' (deslizamiento) por el deslizamiento cromático que produce, un gesto habitual en la música de Schubert y sus sucesores.";
+
+/* Operation property tags */
+"op.involution" = "involución";
+"op.compound" = "compuesta";
+"op.total_movement" = "movimiento total";
+
+/* Theory — Hexatonic */
+"theory.hex.title" = "Ciclos Hexatónicos";
+"theory.hex.subtitle" = "Generados alternando L y P.";
+"theory.hex.body" = "Una cadena LP genera un ciclo cerrado de seis tríadas — tres mayores y tres menores — antes de volver al acorde inicial. Existen exactamente cuatro ciclos de este tipo, que juntos agotan las 24 tríadas mayores y menores. Los acordes adyacentes dentro de un ciclo comparten dos notas en común y difieren en un único desplazamiento de semitono.\n\nLas tres tríadas mayores de cada ciclo tienen fundamentales a 3ra mayor de distancia, formando una tríada aumentada implícita. Operaciones que conservan el ciclo hexatónico: L, P, H.";
+
+/* Theory — Weitzmann */
+"theory.weitz.title" = "Regiones de Weitzmann";
+"theory.weitz.subtitle" = "Generadas alternando R y N.";
+"theory.weitz.body" = "Carl Friedrich Weitzmann observó en 1853 que cada acorde aumentado está rodeado simétricamente por seis tríadas consonantes: desplazar cualquiera de sus tres notas un semitono hacia arriba produce una tríada menor, y hacia abajo produce una mayor. Esto genera seis tríadas por acorde aumentado: una región de Weitzmann.\n\nExisten cuatro regiones, una por cada acorde aumentado, y juntas cubren las 24 tríadas. Cada tríada pertenece exactamente a un ciclo hexatónico y exactamente a una región de Weitzmann. Operaciones que conservan la región de Weitzmann: R, N, S.";
+
+/* Nombres de ciclos hexatónicos */
+"cycle.hex.n" = "Hexatónico N";
+"cycle.hex.ne" = "Hexatónico NE";
+"cycle.hex.e" = "Hexatónico E";
+"cycle.hex.s" = "Hexatónico S";
+
+/* About */
+"about.title" = "Acerca de";
+"about.version" = "Versión 1.0";
+"about.description" = "Una herramienta interactiva para explorar la Teoría Neo-Riemanniana — un marco para analizar la armonía cromática a través de transformaciones de conducción de voces entre tríadas mayores y menores.";
+"about.refs.title" = "Referencias Académicas";
+"about.credits.title" = "Créditos";
+"about.credits.sf2" = "Soundfont por S. Christian Collins. Libre para uso comercial.";
