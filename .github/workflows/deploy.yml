@@ -66,26 +66,25 @@ jobs:
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=228T6U2RV4
 
+      - name: Install provisioning profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP_PATH=$RUNNER_TEMP/NeoRiemannian.mobileprovision
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" \
+            /dev/stdin <<< "$(security cms -D -i "$PP_PATH")")
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+          echo "Installed profile UUID: $PROFILE_UUID"
+
       - name: Export IPA
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
-          # Extract the provisioning profile embedded in the archive
-          EMBEDDED_PROFILE=$(find "$RUNNER_TEMP/Riemannian.xcarchive" -name "embedded.mobileprovision" | head -1)
-          echo "Embedded profile: $EMBEDDED_PROFILE"
-
-          if [ -n "$EMBEDDED_PROFILE" ]; then
-            PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" \
-              /dev/stdin <<< "$(security cms -D -i "$EMBEDDED_PROFILE")")
-            echo "Profile UUID: $PROFILE_UUID"
-
-            # Install it for export
-            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-            cp "$EMBEDDED_PROFILE" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
-
-            # ExportOptions with manual signing
-            cat > "$RUNNER_TEMP/ExportOptions.plist" << PLIST
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -106,21 +105,6 @@ jobs:
           </dict>
           </plist>
           PLIST
-          else
-            echo "No embedded profile found — using automatic"
-            cat > "$RUNNER_TEMP/ExportOptions.plist" << 'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>teamID</key>
-            <string>228T6U2RV4</string>
-          </dict>
-          </plist>
-          PLIST
-          fi
 
           xcodebuild -exportArchive \
             -archivePath "$RUNNER_TEMP/Riemannian.xcarchive" \
