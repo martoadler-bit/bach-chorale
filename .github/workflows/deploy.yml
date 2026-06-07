@@ -21,9 +21,11 @@ jobs:
           APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
+          KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$KEY_DIR"
           echo -n "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode \
-            > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+            > "$KEY_DIR/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+          echo "KEY_PATH=$KEY_DIR/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8" >> $GITHUB_ENV
 
       - name: Build Archive
         env:
@@ -34,11 +36,11 @@ jobs:
             -project Riemannian.xcodeproj \
             -scheme Riemannian \
             -configuration Release \
-            -archivePath $RUNNER_TEMP/Riemannian.xcarchive \
+            -archivePath "$RUNNER_TEMP/Riemannian.xcarchive" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
-            -authenticationKeyID $APP_STORE_CONNECT_API_KEY_ID \
-            -authenticationKeyIssuerID $APP_STORE_CONNECT_API_ISSUER_ID \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=228T6U2RV4
 
@@ -47,7 +49,7 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
-          cat > $RUNNER_TEMP/ExportOptions.plist << EOF
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << 'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -60,16 +62,16 @@ jobs:
             <string>automatic</string>
           </dict>
           </plist>
-          EOF
+          PLIST
 
           xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/Riemannian.xcarchive \
-            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
-            -exportPath $RUNNER_TEMP/export \
+            -archivePath "$RUNNER_TEMP/Riemannian.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
-            -authenticationKeyID $APP_STORE_CONNECT_API_KEY_ID \
-            -authenticationKeyIssuerID $APP_STORE_CONNECT_API_ISSUER_ID
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID"
 
       - name: Upload to App Store Connect
         env:
@@ -78,7 +80,7 @@ jobs:
         run: |
           xcrun altool --upload-app \
             --type ios \
-            --file $RUNNER_TEMP/export/Riemannian.ipa \
-            --apiKey $APP_STORE_CONNECT_API_KEY_ID \
-            --apiIssuer $APP_STORE_CONNECT_API_ISSUER_ID \
+            --file "$RUNNER_TEMP/export/Riemannian.ipa" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID" \
             --verbose
