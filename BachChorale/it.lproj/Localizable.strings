@@ -1,0 +1,78 @@
+/* Schede */
+"Soprano" = "Soprano";
+"Generate" = "Genera";
+"Chorale" = "Corale";
+"Library" = "Libreria";
+"Theory" = "Teoria";
+
+/* SopranoInputView */
+"Detect" = "Rileva";
+"Major" = "Maggiore";
+"Minor" = "Minore";
+"Free" = "Libero";
+"Step by step" = "Passo per passo";
+"Harmonize" = "Armonizza";
+"Clear" = "Cancella";
+"Record" = "Registra";
+"Stop" = "Ferma";
+"Cancel" = "Annulla";
+"Count: %@" = "Conto: %@";
+"Root note" = "Nota fondamentale";
+"Mode" = "Modo";
+"Key" = "Tonalità";
+"OK" = "OK";
+
+/* Valori delle note */
+"Whole" = "Semibreve";
+"Half" = "Minima";
+"Quarter" = "Semiminima";
+"Eighth" = "Croma";
+
+/* ChoraleResultView */
+"Score" = "Partitura";
+"Piano Roll" = "Piano Roll";
+"No chorale yet" = "Nessun corale ancora";
+"Use the Soprano tab to harmonize a melody,\nor Generate to create one from scratch." = "Usa la scheda Soprano per armonizzare una melodia,\no Genera per crearne uno da zero.";
+"Chorale in %@" = "Corale in %@";
+"Generated in %@" = "Generato in %@";
+"Chorale name" = "Nome del corale";
+"Name" = "Nome";
+"Save chorale" = "Salva corale";
+"Save" = "Salva";
+"Chorale" = "Corale";
+"%@ — Chorale" = "%@ — Corale";
+
+/* GenerateView */
+"Generate chorale" = "Genera corale";
+"Key" = "Tonalità";
+"Parameters" = "Parametri";
+"Measures" = "Battute";
+"Tempo" = "Tempo";
+"Generating…" = "Generazione…";
+
+/* LibraryView */
+"My Chorales" = "I miei Corali";
+"Bach Library" = "Libreria Bach";
+"Close" = "Chiudi";
+
+/* Suoni */
+"sound.voices" = "Voci";
+"sound.organ" = "Organo";
+"sound.piano" = "Pianoforte";
+"sound.strings" = "Archi";
+"sound.rhodes" = "Rhodes";
+
+/* TheoryView */
+"Chorale Theory" = "Teoria del Corale";
+"theory.section.voiceLeading.title" = "Conduzione delle voci";
+"theory.section.voiceLeading.subtitle" = "Movimento tra le voci";
+"theory.section.ranges.title" = "Estensioni vocali";
+"theory.section.ranges.subtitle" = "SATB: limiti di registro";
+"theory.section.parallels.title" = "Quinte e ottave parallele";
+"theory.section.parallels.subtitle" = "Errori di contrappunto";
+"theory.section.cadences.title" = "Cadenze";
+"theory.section.cadences.subtitle" = "Tipi di cadenza in Bach";
+"theory.section.figuredBass.title" = "Basso figurato";
+"theory.section.figuredBass.subtitle" = "Numeri romani e cifre";
+"theory.section.harmony.title" = "Funzioni armoniche";
+"theory.section.harmony.subtitle" = "Tonica, dominante, sottodominante";
