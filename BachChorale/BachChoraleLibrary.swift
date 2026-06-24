@@ -277,7 +277,7 @@ struct LibraryView: View {
                                 vm.isMinor = entry.chorale.isMinor
                                 vm.tempo = entry.chorale.tempo
                                 vm.choraleOrigin = entry.sopranoNotes.isEmpty ? .generated : .fromSoprano
-                                selectedTab = 2
+                                selectedTab = 3
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(entry.name)

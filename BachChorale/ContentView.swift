@@ -6,25 +6,29 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
+            HomeView(selectedTab: $selectedTab)
+                .tabItem { Label("Home", systemImage: "house") }
+                .tag(0)
+
             SopranoInputView(vm: vm, selectedTab: $selectedTab)
                 .tabItem { Label("Soprano", systemImage: "music.note") }
-                .tag(0)
+                .tag(1)
 
             GenerateView(vm: vm, selectedTab: $selectedTab)
                 .tabItem { Label("Generate", systemImage: "wand.and.stars") }
-                .tag(1)
+                .tag(2)
 
             ChoraleResultView(vm: vm)
                 .tabItem { Label("Chorale", systemImage: "music.quarternote.3") }
-                .tag(2)
+                .tag(3)
 
             LibraryView(vm: vm, selectedTab: $selectedTab)
                 .tabItem { Label("Library", systemImage: "books.vertical") }
-                .tag(3)
+                .tag(4)
 
             TheoryView()
                 .tabItem { Label("Theory", systemImage: "graduationcap") }
-                .tag(4)
+                .tag(5)
         }
         .preferredColorScheme(.dark)
     }

@@ -146,7 +146,7 @@ struct SopranoInputView: View {
                     Spacer()
                     Button {
                         melodyPlayer.stop(); playingNoteIndex = nil
-                        vm.harmonizeSoprano { selectedTab = 2 }
+                        vm.harmonizeSoprano { selectedTab = 3 }
                     } label: {
                         if vm.isHarmonizing {
                             ProgressView().progressViewStyle(.circular)

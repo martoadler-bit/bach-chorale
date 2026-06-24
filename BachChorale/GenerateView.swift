@@ -48,7 +48,7 @@ struct GenerateView: View {
                 Section {
                     Button {
                         vm.generateFromScratch {
-                            selectedTab = 2
+                            selectedTab = 3
                         }
                     } label: {
                         HStack {
