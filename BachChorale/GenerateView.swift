@@ -68,5 +68,6 @@ struct GenerateView: View {
             }
             .navigationTitle("Generate chorale")
         }
+        .navigationViewStyle(.stack)
     }
 }

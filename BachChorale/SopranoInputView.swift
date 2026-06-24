@@ -181,6 +181,7 @@ struct SopranoInputView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     // MARK: - Free record controls view
@@ -402,5 +403,6 @@ struct KeyPickerSheet: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 }

@@ -332,6 +332,7 @@ struct LibraryView: View {
                 LibraryChoraleDetailView(chorale: data)
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     private func loadChorale(_ entry: LibraryChoraleEntry) {
@@ -421,6 +422,7 @@ struct LibraryChoraleDetailView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     private var keyLabel: String {

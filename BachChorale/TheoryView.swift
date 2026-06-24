@@ -28,6 +28,7 @@ struct TheoryView: View {
             }
             .navigationTitle("Chorale Theory")
         }
+        .navigationViewStyle(.stack)
     }
 }
 

@@ -68,6 +68,7 @@ struct ChoraleResultView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     private var defaultSaveName: String {
@@ -537,6 +538,7 @@ struct SaveChoraleSheet: View {
             }
             .onAppear { name = defaultName }
         }
+        .navigationViewStyle(.stack)
     }
 }
 
