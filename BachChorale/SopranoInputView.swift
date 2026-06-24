@@ -39,13 +39,26 @@ struct SopranoInputView: View {
             VStack(spacing: 0) {
                 // ── key row ────────────────────────────────────────────
                 HStack(spacing: 12) {
-                    Button { vm.detectKey() } label: {
-                        Label("Detect", systemImage: "music.mic").font(.caption)
-                    }.disabled(vm.sopranоNotes.isEmpty)
                     Spacer()
-                    Text(keyLabel).font(.caption.bold()).foregroundColor(.yellow)
-                        .onTapGesture { showKeyPicker = true }
-                    Picker("", selection: $vm.isMinor) {
+                    Button { showKeyPicker = true } label: {
+                        HStack(spacing: 4) {
+                            Text(keyLabel)
+                                .font(.caption.bold())
+                                .foregroundColor(.yellow)
+                            if vm.keyIsAutoDetected {
+                                Text("auto")
+                                    .font(.caption2)
+                                    .foregroundColor(.yellow.opacity(0.6))
+                            }
+                            Image(systemName: "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.yellow.opacity(0.6))
+                        }
+                    }
+                    Picker("", selection: Binding(
+                        get: { vm.isMinor },
+                        set: { vm.userSetKey(root: vm.keyRoot, minor: $0) }
+                    )) {
                         Text("Major").tag(false); Text("Minor").tag(true)
                     }.pickerStyle(.segmented).frame(width: 120)
                 }
@@ -173,7 +186,9 @@ struct SopranoInputView: View {
                 }
             }
             .sheet(isPresented: $showKeyPicker) {
-                KeyPickerSheet(keyRoot: $vm.keyRoot, isMinor: $vm.isMinor)
+                KeyPickerSheet(keyRoot: vm.keyRoot, isMinor: vm.isMinor) { root, minor in
+                    vm.userSetKey(root: root, minor: minor)
+                }
             }
             .onReceive(recordingEngine.$state) { newState in
                 if newState == .stopped {
@@ -350,9 +365,20 @@ struct RhythmBar: View {
 // MARK: - Key picker sheet
 
 struct KeyPickerSheet: View {
-    @Binding var keyRoot: Int
-    @Binding var isMinor: Bool
+    let initialKeyRoot: Int
+    let initialIsMinor: Bool
+    let onSelect: (Int, Bool) -> Void
     @Environment(\.dismiss) var dismiss
+    @State private var keyRoot: Int
+    @State private var isMinor: Bool
+
+    init(keyRoot: Int, isMinor: Bool, onSelect: @escaping (Int, Bool) -> Void) {
+        self.initialKeyRoot = keyRoot
+        self.initialIsMinor = isMinor
+        self.onSelect = onSelect
+        _keyRoot = State(initialValue: keyRoot)
+        _isMinor = State(initialValue: isMinor)
+    }
 
     private let noteNames = ["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"]
 
@@ -399,7 +425,10 @@ struct KeyPickerSheet: View {
             .navigationTitle("Key").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("OK") { dismiss() }
+                    Button("OK") {
+                        onSelect(keyRoot, isMinor)
+                        dismiss()
+                    }
                 }
             }
         }
