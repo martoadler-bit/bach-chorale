@@ -169,6 +169,11 @@ struct ChoraleResultView: View {
                    let root = scene.windows.first?.rootViewController {
                     var top = root
                     while let presented = top.presentedViewController { top = presented }
+                    if let popover = ac.popoverPresentationController {
+                        popover.sourceView = top.view
+                        popover.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 0, height: 0)
+                        popover.permittedArrowDirections = []
+                    }
                     top.present(ac, animated: true)
                 }
             } label: {
