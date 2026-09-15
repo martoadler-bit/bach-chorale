@@ -12,6 +12,7 @@ struct ChoraleResultView: View {
     @State private var displayMode: ScoreDisplayMode = .score
     @State private var showSaveSheet = false
     @State private var saveName = ""
+    @State private var cursorBeat: Double = -1.0
 
 
     var body: some View {
@@ -35,17 +36,27 @@ struct ChoraleResultView: View {
                         if displayMode == .score {
                             ChoraleScoreRepresentable(
                                 chorale: vm.chorale,
-                                currentBeat: player.currentBeat,
+                                currentBeat: cursorBeat,
                                 mutedVoices: player.mutedVoices
                             )
                         } else {
                             ChoraleRollView(
                                 chorale: vm.chorale,
-                                currentBeat: player.currentBeat,
-                                mutedVoices: player.mutedVoices
+                                currentBeat: cursorBeat,
+                                mutedVoices: player.mutedVoices,
+                                isPlaying: player.isPlaying,
+                                onTapBeat: { beat in
+                                    if !player.isPlaying { cursorBeat = beat }
+                                }
                             )
                         }
                     }
+
+                    // Chord carousel
+                    ChordCarouselView(
+                        chordLabels: vm.chorale.chordLabels,
+                        cursorBeat: cursorBeat
+                    )
 
                     // Mixer
                     MixerView(player: player)
@@ -56,6 +67,9 @@ struct ChoraleResultView: View {
                 .navigationTitle(keyLabel)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarItems }
+                .onChange(of: vm.chorale) { _ in
+                    cursorBeat = -1.0
+                }
                 .sheet(isPresented: $showSaveSheet) {
                     SaveChoraleSheet(defaultName: defaultSaveName) { name in
                         let entry = UserChoraleEntry(
@@ -109,9 +123,14 @@ struct ChoraleResultView: View {
                 if player.isPlaying {
                     player.stop()
                 } else {
+                    let startFrom = cursorBeat >= 0 ? cursorBeat : 0
                     player.play(
                         chorale: vm.chorale,
-                        onBeat: { beat in player.currentBeat = beat },
+                        fromBeat: startFrom,
+                        onBeat: { beat in
+                            player.currentBeat = beat
+                            cursorBeat = beat
+                        },
                         onFinish: { }
                     )
                 }
@@ -203,6 +222,66 @@ struct ChoraleResultView: View {
     }
 }
 
+// MARK: - ChordCarouselView
+
+struct ChordCarouselView: View {
+    let chordLabels: [ChordLabel]
+    let cursorBeat: Double
+
+    private var currentIndex: Int? {
+        guard cursorBeat >= 0, !chordLabels.isEmpty else { return nil }
+        var idx = 0
+        for (i, cl) in chordLabels.enumerated() {
+            if cl.beatPosition <= cursorBeat { idx = i } else { break }
+        }
+        return idx
+    }
+
+    var body: some View {
+        Group {
+            if let idx = currentIndex {
+                HStack(spacing: 0) {
+                    // Previous
+                    if idx > 0 {
+                        chordCell(chordLabels[idx - 1], isCurrent: false)
+                    } else {
+                        Color.clear.frame(maxWidth: .infinity)
+                    }
+
+                    // Current
+                    chordCell(chordLabels[idx], isCurrent: true)
+
+                    // Next
+                    if idx + 1 < chordLabels.count {
+                        chordCell(chordLabels[idx + 1], isCurrent: false)
+                    } else {
+                        Color.clear.frame(maxWidth: .infinity)
+                    }
+                }
+                .frame(height: 56)
+                .background(Color(white: 0.10))
+            } else {
+                Color(white: 0.10).frame(height: 56)
+            }
+        }
+    }
+
+    private func chordCell(_ cl: ChordLabel, isCurrent: Bool) -> some View {
+        VStack(spacing: 2) {
+            Text(cl.romanNumeral.isEmpty ? cl.label : cl.romanNumeral)
+                .font(isCurrent ? .title3.bold() : .subheadline)
+                .foregroundColor(isCurrent ? .yellow : .secondary)
+            Text(cl.label)
+                .font(isCurrent ? .caption.bold() : .caption2)
+                .foregroundColor(isCurrent ? .white.opacity(0.8) : .secondary.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 56)
+        .background(isCurrent ? Color.yellow.opacity(0.12) : Color.clear)
+        .overlay(isCurrent ? RoundedRectangle(cornerRadius: 0).stroke(Color.yellow.opacity(0.3), lineWidth: 1) : nil)
+    }
+}
+
 // MARK: - MixerView
 
 struct MixerView: View {
@@ -249,19 +328,25 @@ struct ChoraleRollView: UIViewRepresentable {
     let chorale: ChoraleData
     let currentBeat: Double
     let mutedVoices: Set<Voice>
+    var isPlaying: Bool = false
+    var onTapBeat: ((Double) -> Void)? = nil
 
     func makeUIView(context: Context) -> ChoraleRollUIView {
         let v = ChoraleRollUIView()
-        v.update(chorale: chorale, currentBeat: currentBeat, mutedVoices: mutedVoices)
+        v.onTapBeat = onTapBeat
+        v.update(chorale: chorale, currentBeat: currentBeat, isPlaying: isPlaying, mutedVoices: mutedVoices)
         return v
     }
 
     func updateUIView(_ v: ChoraleRollUIView, context: Context) {
-        v.update(chorale: chorale, currentBeat: currentBeat, mutedVoices: mutedVoices)
+        v.onTapBeat = onTapBeat
+        v.update(chorale: chorale, currentBeat: currentBeat, isPlaying: isPlaying, mutedVoices: mutedVoices)
     }
 }
 
 class ChoraleRollUIView: UIView {
+    var onTapBeat: ((Double) -> Void)? = nil
+
     private let scrollView = UIScrollView()
     private let canvas     = UIView()
     private var chorale    = ChoraleData()
@@ -303,6 +388,17 @@ class ChoraleRollUIView: UIView {
         playheadLayer.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 0.85).cgColor
         playheadLayer.isHidden = true
         canvas.layer.addSublayer(playheadLayer)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        scrollView.addGestureRecognizer(tap)
+    }
+
+    @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
+        guard let cb = onTapBeat else { return }
+        let pt = recognizer.location(in: canvas)
+        let beat = max(0, (pt.x - keyboardW) / beatW)
+        let totalBeats = Double(chorale.measuresCount * 4)
+        cb(min(Double(beat), totalBeats))
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -312,26 +408,40 @@ class ChoraleRollUIView: UIView {
         redrawAll()
     }
 
-    func update(chorale: ChoraleData, currentBeat: Double, mutedVoices: Set<Voice>) {
+    func update(chorale: ChoraleData, currentBeat: Double, isPlaying: Bool = false, mutedVoices: Set<Voice>) {
         let choraleChanged = self.chorale != chorale
         self.chorale = chorale
-
-        // Smooth scroll anchor: when beat advances, record position and time
-        if currentBeat >= 0 && currentBeat != lastBeat {
-            if lastBeat >= 0 && currentBeat > lastBeat {
-                let elapsed = CACurrentMediaTime() - anchorTime
-                if elapsed > 0 { beatsPerSecond = (currentBeat - anchorBeat) / elapsed }
-            }
-            anchorBeat = currentBeat
-            anchorTime = CACurrentMediaTime()
-            lastBeat   = currentBeat
-        }
 
         if choraleChanged { redrawAll() }
 
         if currentBeat >= 0 {
-            if displayLink == nil { startDisplayLink() }
             playheadLayer.isHidden = false
+            if isPlaying {
+                // Smooth scroll anchor: when beat advances, record position and time
+                if currentBeat != lastBeat {
+                    if lastBeat >= 0 && currentBeat > lastBeat {
+                        let elapsed = CACurrentMediaTime() - anchorTime
+                        if elapsed > 0 { beatsPerSecond = (currentBeat - anchorBeat) / elapsed }
+                    }
+                    anchorBeat = currentBeat
+                    anchorTime = CACurrentMediaTime()
+                    lastBeat   = currentBeat
+                }
+                if displayLink == nil { startDisplayLink() }
+            } else {
+                // Static cursor: position playhead without auto-scrolling
+                stopDisplayLink()
+                lastBeat = -1
+                let x = keyboardW + CGFloat(currentBeat) * beatW
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
+                playheadLayer.frame.origin.x = x
+                let vw = scrollView.bounds.width
+                let tx = max(0, x - vw * 0.3)
+                let mx = max(0, scrollView.contentSize.width - vw)
+                scrollView.contentOffset = CGPoint(x: min(tx, mx), y: scrollView.contentOffset.y)
+                CATransaction.commit()
+            }
         } else {
             stopDisplayLink()
             playheadLayer.isHidden = true

@@ -152,12 +152,14 @@ class ChoralePlayer: ObservableObject {
     // MARK: - Playback
 
     func play(chorale: ChoraleData,
+              fromBeat: Double = 0,
               onBeat: @escaping (Double) -> Void,
               onFinish: @escaping () -> Void) {
         guard engineStarted else { onFinish(); return }
         stop()
         isPlaying = true
 
+        let startBeat = max(0, fromBeat)
         let beatDur = 60.0 / Double(chorale.tempo)
         typealias Ev = (time: Double, fn: () -> Void)
         var events: [Ev] = []
@@ -206,15 +208,18 @@ class ChoralePlayer: ObservableObject {
         // Beat indicator: fire onBeat at every unique beat position across all voices.
         // This ensures glows update even when one voice has a note shorter than another.
         let allBeatPositions = Set(pairs.flatMap { $0.1.map { $0.beatPosition } })
-        for beat in allBeatPositions.sorted() {
-            let t = shiftedTime(beat * beatDur)
+        for beat in allBeatPositions.sorted() where beat >= startBeat {
+            let t = shiftedTime(beat * beatDur) - shiftedTime(startBeat * beatDur)
             events.append((max(0, t), { DispatchQueue.main.async { onBeat(beat) } }))
         }
+
+        let timeOrigin = shiftedTime(startBeat * beatDur)
 
         for (voice, notes) in pairs {
             let smp = samplers[voice.rawValue]
             let ch  = UInt8(voice.rawValue)
             for (i, note) in notes.enumerated() {
+                guard note.beatPosition + note.duration > startBeat else { continue }
                 let beatT      = note.beatPosition * beatDur
                 // Fermata duration extension only applies to the soprano; inner voices
                 // sustain through the fermata gap via the shiftedTime extension below.
@@ -228,12 +233,12 @@ class ChoralePlayer: ObservableObject {
                     ? writtenDur * fermataMult
                     : max(writtenDur, shiftedTime(noteEndTime) - shiftedTime(beatT))
 
-                let onT  = shiftedTime(beatT)
+                let onT  = shiftedTime(beatT) - timeOrigin
                 let beat = note.beatPosition
 
                 let prevNote  = i > 0 ? notes[i - 1] : nil
                 let nextNote  = i + 1 < notes.count ? notes[i + 1] : nil
-                let nextBeatT = nextNote.map { shiftedTime($0.beatPosition * beatDur) }
+                let nextBeatT = nextNote.map { shiftedTime($0.beatPosition * beatDur) - timeOrigin }
 
                 // All voices use the explicit tiedToNext flag — no pitch-matching.
                 // For soprano: also break ties at fermata notes (fermata needs a fresh attack).
@@ -263,13 +268,13 @@ class ChoralePlayer: ObservableObject {
                         // Consecutive different pitch: send NoteOff just after the next NoteOn
                         // so the sampler processes the new attack before releasing the old note.
                         // The old note's release tail blends with the new note's attack.
-                        stopT = nt + 0.008
+                        stopT = nt - timeOrigin + 0.008
                     } else {
                         // Gap, rest, or repeated pitch: stop at natural note end.
-                        stopT = shiftedTime(beatT) + soundDur
+                        stopT = shiftedTime(beatT) - timeOrigin + soundDur
                     }
                 } else {
-                    stopT = shiftedTime(beatT) + soundDur
+                    stopT = shiftedTime(beatT) - timeOrigin + soundDur
                 }
 
                 if let st = stopT {
@@ -281,7 +286,7 @@ class ChoralePlayer: ObservableObject {
         // Use the latest actual stop time from all scheduled events to avoid finishing too early
         // (fermatas extend real time beyond nominal beat duration).
         let nominalEnd = (chorale.bass.map { $0.beatPosition + $0.duration }.max() ?? 4) * beatDur
-        let total = max(nominalEnd, shiftedTime(nominalEnd))
+        let total = max(nominalEnd, shiftedTime(nominalEnd)) - timeOrigin
         events.append((total + 0.5, { [weak self] in
             DispatchQueue.main.async {
                 self?.isPlaying   = false
